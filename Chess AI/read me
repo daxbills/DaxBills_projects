@@ -1,0 +1,7 @@
+This purpose of this project is to create a chess engine capable at playing a high skill level using python.
+This project based its code from the psuedo code from the chess programming wiki https://www.chessprogramming.org/Main_Page
+The implementation of the algorithms and debugging was all done by me.
+I used an API from Lichess.org to upload my engine to their website to play against other players and AI's
+https://lichess.org/@/daxt1 
+the above link shows the profile page of my engine, it played over 100 games agaisnt players and engines
+its best win was agianst a 2200 player which is in the top 1% of online players
