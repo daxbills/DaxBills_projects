@@ -1,0 +1,8 @@
+I learned and researched about neural networks using the videos by 3Blue1Brown
+I read articles such as this one (https://www.ibm.com/topics/neural-networks) to make sure I fully understand how NN's work
+Summary: used the previous sources along with this video (https://www.youtube.com/watch?v=bte8Er0QhDg) to help me make this network
+I learned about activation functinons and their different types
+I learned about the nodes in the network and how they are similar to neurons in the human brain
+I learned about epochs and how fast/slow to make the learning process for the network.
+I learned about layers and how deep neural networks refer to the large amounts of layers.
+In this network only a few layers are needed, an input layers of the image size, hidden layers to determine which digit the image is, outout layer to decide/predict.
