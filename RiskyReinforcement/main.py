@@ -5,26 +5,28 @@ import actions
 from matplotlib.animation import FuncAnimation
 from randomai import RandomAI
 from rulebasedai import RuleBasedAI
+
 class RiskGame:
-    def __init__(self):
-        self.game_map = MapMaker()
+    def __init__(self, num_players=6):
+        self.num_players = num_players
+        self.game_map = MapMaker(num_players)
         self.game_actions = actions.GameActions(self.game_map)
         self.fig, self.ax = plt.subplots(figsize=(16, 12))
         self.pos = nx.kamada_kawai_layout(self.game_map.Risk_Map)
         self.current_player = 0
         self.turn_phase = "reinforce"  # reinforce → attack → fortify
         self.ai_players = [
-            RandomAI(self.game_map, self.game_actions, 0),
-            RuleBasedAI(self.game_map, self.game_actions, 1),
-            RuleBasedAI(self.game_map, self.game_actions, 2),
+            RandomAI(self.game_map, self.game_actions, i) if i % 3 == 0 
+            else RuleBasedAI(self.game_map, self.game_actions, i)
+            for i in range(self.num_players)
         ]
         self.winner = None
-        self.player_colors = {  # Match colors from map.py
-            0: "blue",
-            1: "red",
-            2: "green",
-            -1: "gray"
-        }
+        self.player_colors = self.generate_colors(num_players)
+        self.player_colors[-1] = "gray"  # Neutral/unowned territories
+
+    def generate_colors(self, num_players):
+        cmap = plt.get_cmap("tab10")  # A colormap with 10 distinct colors
+        return {i: cmap(i % 10) for i in range(num_players)}
 
     def check_winner(self):
         """Check if any player owns all territories"""
@@ -100,7 +102,7 @@ class RiskGame:
         
         title = f"Player {self.current_player}'s Turn - {self.turn_phase.capitalize()} Phase"
         self.ax.set_title(title)
-        plt.pause(0.01)
+        plt.pause(0.005)
 
     def next_phase(self):
         """Advances to the next phase of the turn"""
@@ -110,12 +112,22 @@ class RiskGame:
             self.turn_phase = "fortify"
         else:
             self.turn_phase = "reinforce"
-            self.next_player()
+            self.next_turn()
 
-    def next_player(self):
-        """Moves to the next player's turn"""
-        self.current_player = (self.current_player + 1) % len(self.ai_players)
-        # print(f"\nPlayer {self.current_player}'s turn starting...")
+    def next_turn(self):
+        """Moves to the next player, skipping those with no territories."""
+        for _ in range(self.num_players):  # Avoid infinite loops
+            self.current_player = (self.current_player + 1) % self.num_players
+            if self.player_has_territories(self.current_player):
+                break  # Stop once a valid player is found
+
+        print(f"Next turn: Player {self.current_player}")
+
+
+    def player_has_territories(self, player_id):
+        """Returns True if the player controls at least one territory."""
+        return any(self.game_map.Risk_Map.nodes[t]["owner"] == player_id for t in self.game_map.Risk_Map.nodes)
+
 
     def play_demo(self):
         """Fast-paced game until one player conquers all territories"""
@@ -145,7 +157,6 @@ class RiskGame:
         plt.pause(2)
 
 
-
 if __name__ == "__main__":
-    game = RiskGame()
+    game = RiskGame(num_players=5)  # Now with 5 players
     game.play_demo()

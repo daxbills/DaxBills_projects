@@ -137,11 +137,11 @@ class RuleBasedAI:
         continent = self._get_continent(territory)
         completion = self._get_continent_completion(continent)
         if completion > 0.6:
-            value += 30 * completion
+            value += 50 * completion
             
         # Strategic position value
         neighbor_count = len(list(self.game_map.Risk_Map.neighbors(territory)))
-        value += neighbor_count * 2
+        value += neighbor_count * 1.2
         
         # Army strength (prefer weaker targets)
         value -= self.game_map.Risk_Map.nodes[territory]["armies"] * 0.4

@@ -1,16 +1,17 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import matplotlib.cm as cm
 
 
 class MapMaker:
-    def __init__(self):
+    def __init__(self, num_players):
         self.Risk_Map = nx.Graph()
         self.continents = []
         self.define_continents()
         self.add_intercontinental_connections()
         self.initialize_territories()
-        self.assign_territories()
+        self.assign_territories(num_players)
 
     def continent_creator(self, nodes, edges, name):
         """Creates a continent graph."""
@@ -97,39 +98,39 @@ class MapMaker:
             self.Risk_Map.nodes[territory]["owner"] = -1  # No owner initially
             self.Risk_Map.nodes[territory]["armies"] = 0  # No armies initially
 
-    def assign_territories(self):
+    def assign_territories(self, num_players):
         """Randomly assigns territories to players and gives them a random number of armies."""
-        players = [0, 1, 2] 
+        players = list(range(num_players))  # Dynamically generate players
         territories = list(self.Risk_Map.nodes)
         random.shuffle(territories)  # Shuffle for randomness
 
         for i, territory in enumerate(territories):
-            self.Risk_Map.nodes[territory]["owner"] = players[i % len(players)]  # Alternate ownership
-            self.Risk_Map.nodes[territory]["armies"] = random.randint(1, 5)  # Random initial troops (1-5)
+            owner = players[i % num_players]  # Assign territories in round-robin fashion
+            self.Risk_Map.nodes[territory]["owner"] = owner
+            self.Risk_Map.nodes[territory]["armies"] = random.randint(2, 4)
 
 
-    def draw_map(self):
+    def draw_map(self, num_players):
         """Draws the Risk map with clear troop numbers and ownership visualization."""
         plt.figure(figsize=(16, 12))
         pos = nx.spring_layout(self.Risk_Map, seed=42)
         
-        # Create color mapping for players
-        player_colors = {
-            -1: "gray",   # Neutral/unowned
-            0: "lightblue",
-            1: "red",
-            2: "green"
-        }
+        # Generate distinct colors dynamically for players
+        cmap = cm.get_cmap("tab10", num_players)  # Choose a colormap with enough distinct colors
+        player_colors = {-1: "gray"}  # Neutral/unowned territories
+
+        for i in range(num_players):
+            player_colors[i] = cmap(i)  # Assign a unique color per player
         
         # Prepare node colors and labels
         node_colors = []
         labels = {}
         army_labels = {}
-        
+
         for territory in self.Risk_Map.nodes:
             owner = self.Risk_Map.nodes[territory]["owner"]
             armies = self.Risk_Map.nodes[territory]["armies"]
-            
+
             node_colors.append(player_colors.get(owner, "gray"))
             labels[territory] = territory
             army_labels[territory] = str(armies)
@@ -142,7 +143,7 @@ class MapMaker:
             edgecolors="black",
             linewidths=1
         )
-        
+
         # Draw territory names
         nx.draw_networkx_labels(
             self.Risk_Map, pos,
@@ -150,7 +151,7 @@ class MapMaker:
             font_size=8,
             font_weight="bold"
         )
-        
+
         # Draw troop numbers separately for better visibility
         text_pos = {k: (v[0], v[1]-0.05) for k, v in pos.items()}  # Offset below territory name
         nx.draw_networkx_labels(
@@ -160,7 +161,7 @@ class MapMaker:
             font_color="black",
             bbox=dict(facecolor="white", edgecolor="none", alpha=0.7, boxstyle="round,pad=0.3")
         )
-        
+
         # Draw edges (connections between territories)
         nx.draw_networkx_edges(
             self.Risk_Map, pos,
@@ -168,18 +169,14 @@ class MapMaker:
             edge_color="gray",
             alpha=0.7
         )
-        
-        # Add legend
+
+        # Generate a dynamic legend for all players
         legend_elements = [
-            plt.Line2D([0], [0], marker='o', color='w', label='Player 0',
-                      markerfacecolor='lightblue', markersize=10),
-            plt.Line2D([0], [0], marker='o', color='w', label='Player 1',
-                      markerfacecolor='lightcoral', markersize=10),
-            plt.Line2D([0], [0], marker='o', color='w', label='Player 2',
-                      markerfacecolor='plum', markersize=10)
+            plt.Line2D([0], [0], marker='o', color='w', label=f'Player {i}',
+                    markerfacecolor=cmap(i), markersize=10) for i in range(num_players)
         ]
         plt.legend(handles=legend_elements, loc='upper right')
-        
+
         plt.title("Risk Game Map - Territory Ownership and Army Counts")
         plt.axis('off')
         plt.tight_layout()

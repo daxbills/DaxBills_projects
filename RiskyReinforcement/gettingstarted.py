@@ -216,3 +216,4 @@ nx.draw(
 plt.title("Risk Board")
 plt.show()
 
+print("hi")
