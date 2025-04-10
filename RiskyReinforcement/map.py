@@ -6,6 +6,7 @@ import matplotlib.cm as cm
 
 class MapMaker:
     def __init__(self, num_players):
+        self.num_players = num_players
         self.Risk_Map = nx.Graph()
         self.continents = []
         self.define_continents()
@@ -103,11 +104,27 @@ class MapMaker:
         players = list(range(num_players))  # Dynamically generate players
         territories = list(self.Risk_Map.nodes)
         random.shuffle(territories)  # Shuffle for randomness
+        max_troops= 50 - 5*num_players
+        troops_per_player={}
+        for i in range(num_players):
+            troops_per_player[i]=max_troops
 
         for i, territory in enumerate(territories):
             owner = players[i % num_players]  # Assign territories in round-robin fashion
             self.Risk_Map.nodes[territory]["owner"] = owner
-            self.Risk_Map.nodes[territory]["armies"] = random.randint(2, 4)
+            self.Risk_Map.nodes[territory]["armies"] = 1
+            troops_per_player[owner]-= 1
+
+        for player, remaining in troops_per_player.items():
+            owned_territories = [t for t in territories if self.Risk_Map.nodes[t]["owner"] == player]
+            while remaining > 0:
+                territory = random.choice(owned_territories)
+                add_armies = random.randint(1, min(3, remaining))
+                self.Risk_Map.nodes[territory]["armies"] += add_armies
+                remaining -= add_armies
+
+
+
 
 
     def draw_map(self, num_players):
